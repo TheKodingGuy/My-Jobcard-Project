@@ -1,8 +1,7 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
-from datetime import date, datetime, time
-from dateutil import parser
+from datetime import date, datetime
 
 # --- PAGE SETUP ---
 st.set_page_config(page_title="Cloud Job Card", layout="wide")
@@ -35,22 +34,19 @@ if "temp_techs" not in st.session_state:
 st.title("🏗️ Job Card System")
 
 # Card Type Dropdown
-job_type = st.selectbox("Select Card Type:", ["Jobcard (Completed Job)"])
+job_type = st.selectbox("Select Card Type:", ["Jobcard (Completed Job)", "Pre-Jobcard (Planned Job)"])
 
 st.markdown("---")
 
 # --- UI LAYOUT: CORE DETAILS ---
 col_1, col_2, col_3 = st.columns(3)
 with col_1:
-    job_date = st.date_input("Date", date.today(), disabled=True)
-    site = st.selectbox("Site Location", options=SITE_LIST, index=None, placeholder="Type to Search...")
-
-    time_options = [time(h, m) for h in range(24) for m in (0, 15, 30, 45)]
-
+    job_date = st.date_input("Date", date.today())
+    site = st.selectbox("Site Location", options=SITE_LIST)
 with col_2:
-    start_time_str = st.selectbox("Start Time", options=time_options, index=None, placeholder="Choose start time...")
+    start_time = st.time_input("Start Time", value=datetime.now().time())
 with col_3:
-    end_time = st.selectbox("End Time", options=time_options, index=None, placeholder="Choose end time...")
+    end_time = st.time_input("End Time", value=datetime.now().time())
 
 work_done = st.text_area("Description of Work (Done or Planned)")
 
@@ -68,7 +64,7 @@ with t_col1:
         st.info("All technicians have been added.")
         selected_tech = None
     else:
-        selected_tech = st.selectbox("Pick Technician", options=available_techs, index=None, placeholder="Choose Technician...")
+        selected_tech = st.selectbox("Pick Technician", options=available_techs)
 
 with t_col2:
     st.write(" ") # Padding
@@ -92,7 +88,7 @@ st.markdown("---")
 st.subheader("🛠️ Materials Used")
 
 # Material Selection
-selected_item = st.selectbox("Pick Material", options=MATERIAL_LIST, index=None, placeholder="Choose Material...")
+selected_item = st.selectbox("Pick Material", options=MATERIAL_LIST)
 
 # Format Logic
 is_meter_item = selected_item in METER_ITEMS
@@ -154,7 +150,6 @@ if st.button("🚀 SAVE FULL JOB CARD TO CLOUD"):
         st.session_state.temp_materials = []
         st.session_state.temp_techs = []
         st.success(f"✅ {job_type} successfully recorded!")
-
 
 if st.checkbox("Show Recent History"):
     data = conn.read(spreadsheet=SHEET_URL, ttl=0)
